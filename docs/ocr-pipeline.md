@@ -15,7 +15,7 @@ flowchart TD
     ProviderDispatcher -->|Simulated| SimProvider["Simulated Deterministic Provider<br/>(BBox, Confidence & Suggestions)"]
     ProviderDispatcher -->|TrOCR| TrOCRProvider["HuggingFace Vision TrOCR<br/>(microsoft/trocr-base-handwritten)"]
     ProviderDispatcher -->|PaddleOCR| PaddleProvider["PaddleOCR Indic Engine<br/>(Devanagari & Multilingual)"]
-    ProviderDispatcher -->|Qwen2.5-VL| QwenProvider["Qwen2.5-VL-3B-Instruct-AWQ<br/>(backend CUDA GPU)"]
+    ProviderDispatcher -->|Qwen2.5-VL| QwenProvider["Qwen2.5-VL-3B<br/>(backend CUDA GPU)"]
     
     SimProvider --> ProvisionalRun["Provisional OCR Run<br/>(ocr_runs table)"]
     TrOCRProvider --> ProvisionalRun
@@ -57,13 +57,13 @@ class BaseOCRProvider(abc.ABC):
 3. **`PaddleOCRProvider`**:
    - Optimized for lightweight on-premise execution with support for regional Indic scripts and mixed vernacular handwriting.
 4. **`QwenVisionOCRProvider`**:
-   - Uses `Qwen/Qwen2.5-VL-3B-Instruct-AWQ` by default, following the provided notebook's Transformers inference flow.
+   - Uses `QWEN_VL_MODEL_ID` (defaults to `Qwen/Qwen2.5-VL-3B-Instruct`; Vast.ai setup selects the AWQ checkpoint).
    - Loads lazily in the FastAPI process and requires CUDA. Missing GPU/dependencies or inference errors are reported; it does not silently substitute simulated OCR.
    - Converts PDF pages to images with PyMuPDF, up to 25 pages per PDF. The optional UI buffer waits five seconds before each image/page.
 
 ### Qwen OCR developer preview
 
-Install a CUDA-enabled PyTorch build for the laptop, then install `backend/requirements-ocr.txt`. Run FastAPI on the laptop so inference uses its local GPU; production uses the same server-side provider on the backend host. The browser uploads files to `POST /api/v1/ocr/extract-preview`, and the backend returns each file's transcription to the **OCR Extraction Preview** panel. This endpoint is OCR-only: it does not persist grades, call the grading pipeline, or publish marks.
+On Windows, `run.bat` installs CUDA-enabled PyTorch and `backend/requirements-ocr.txt`; on Vast.ai, use the one-run `SET_UP.md` script. Run FastAPI on the GPU host so inference uses its local GPU. The browser uploads files to `POST /api/v1/ocr/extract-preview`, and the backend returns each file's transcription to the **OCR Extraction Preview** panel. This endpoint is OCR-only: it does not persist grades, call the grading pipeline, or publish marks.
 
 ---
 

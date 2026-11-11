@@ -1,16 +1,18 @@
-# GPU-only extras for Qwen2.5-VL OCR. Install AFTER backend/requirements.txt.
+# GPU extras for Qwen2.5-VL OCR. Install AFTER backend/requirements.txt.
 #
 # Linux GPU server (e.g. Vast.ai), install a CUDA build of PyTorch first:
 #   pip install torch==2.11.0 --index-url https://download.pytorch.org/whl/cu128
 #   (the build this was verified with; CUDA 12.8 needs an NVIDIA driver >= 570, check with nvidia-smi)
 #   pip install -r backend/requirements-ocr.txt
 #
+# Windows installs the same shared OCR packages but skips Linux AWQ/Triton kernels;
+# use Qwen/Qwen2.5-VL-3B-Instruct instead of the AWQ checkpoint there.
 # triton 3.6.0 is the version torch 2.11.0 ships with: if you change torch, change triton to match.
 # AutoAWQ is deprecated and needs Transformers 4.51.3, so do not float these pins.
 # Resolution checked for Linux x86_64 on Python 3.11 and 3.12.
 transformers==4.51.3
 accelerate==1.15.0
-autoawq==0.2.9
-triton==3.6.0
+autoawq==0.2.9; sys_platform == "linux"
+triton==3.6.0; sys_platform == "linux"
 qwen-vl-utils==0.0.14
 PyMuPDF==2.1

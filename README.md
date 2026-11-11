@@ -148,10 +148,10 @@ The backend is implemented using **Python FastAPI** and **SQLAlchemy 2.x (Async)
 ## 8. Local Setup & Startup
 
 ### Prerequisites
-- Node.js (v18+) and npm
-- Python 3.12+ (or 3.15)
+- Windows 10/11 with `winget`
+- NVIDIA GPU and a current NVIDIA driver (for OCR)
 
-On Windows, run `run.bat` from the project folder to start the backend/API and frontend. It installs the regular app dependencies if needed. The Qwen model loads on the first OCR request and requires the optional CUDA setup below.
+On Windows, run `run.bat` from the project folder. It installs Python 3.12, Node.js, CUDA-enabled PyTorch and OCR dependencies as needed, downloads the OCR model, installs Ollama and pulls the two assistant/question models, then starts the backend and frontend. The first run downloads several gigabytes and can take a while. Local Windows uses the standard non-AWQ Qwen checkpoint; Vast.ai uses the AWQ checkpoint.
 
 ### 8.1 Backend Setup
 ```bash
@@ -165,17 +165,9 @@ python -m uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
 - Alternative ReDoc: **`http://localhost:8000/api/v1/redoc`**
 - System Health: **`http://localhost:8000/health`**
 
-#### Optional: Qwen OCR developer mode (CUDA)
+#### Qwen OCR
 
-The OCR preview runs in the FastAPI backend, not in the browser. The model loads when an OCR request uses Qwen. During development, run the backend on the laptop with its CUDA-capable GPU; production runs the same model in the backend server process.
-
-1. Install a CUDA-enabled PyTorch build compatible with the laptop's GPU and driver using the [PyTorch install selector](https://pytorch.org/get-started/locally/).
-2. Install the optional OCR packages:
-   ```bash
-   python -m pip install -r backend/requirements-ocr.txt
-   ```
-3. Start the backend as above. The default model is `Qwen/Qwen2.5-VL-3B-Instruct-AWQ`; override `QWEN_VL_MODEL_ID` in `.env` if needed.
-4. Click **Teacher** under **Switch Persona**, open **Upload** in the sidebar, upload one or more JPG, PNG, or PDF files, and click **Run OCR**. The optional checkbox waits five seconds before each image/page.
+The OCR preview runs in the FastAPI backend and uses the laptop GPU. `run.bat` installs the required packages and caches the model; no separate OCR installation is needed. Click **Teacher** under **Switch Persona**, open **Upload** in the sidebar, upload one or more JPG, PNG, or PDF files, and click **Run OCR**. The optional checkbox waits five seconds before each image/page.
 
 The preview displays extracted text only; it does not grade or publish marks. OCR files are removed from temporary backend storage after each request. If CUDA or model dependencies are unavailable, the endpoint reports an error instead of returning simulated text.
 
@@ -197,14 +189,14 @@ Runs the backend unit and integration tests covering permissions, pacing invaria
 
 ### 8.4 PayPal subscriptions
 
-1. In [PayPal Developer Apps & Credentials](https://developer.paypal.com/dashboard/applications/sandbox), select **Sandbox** and open or create a merchant app. In the `apps/lumeneios/.env` file beside `run.bat`, set `PAYPAL_ENV=sandbox` and enter that app's `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET`. Use the PayPal section of `.env.example` if you need to create the file. Keep the secret in the backend environment.
-2. From `apps/lumeneios`, run the setup script once to create the sandbox billing plans ($20 USD per school and $5 USD per teacher seat, both monthly).
+1. In [PayPal Developer Apps & Credentials](https://developer.paypal.com/dashboard/applications/sandbox), select **Sandbox** and open or create a merchant app. In the `.env` file beside `run.bat`, set `PAYPAL_ENV=sandbox` and enter that app's `PAYPAL_CLIENT_ID` and `PAYPAL_CLIENT_SECRET`. Copy the PayPal section from `.env.example` if needed. Keep the secret in the backend environment.
+2. From the repository root, run the setup script once to create the sandbox billing plans ($20 USD per school and $5 USD per teacher seat, both monthly).
 
    ```powershell
    .\.venv\Scripts\python.exe -m backend.scripts.create_paypal_plans
    ```
 
-   If you installed the backend dependencies outside the virtual environment, use `python` instead. Copy the two printed assignments, `PAYPAL_BASE_PLAN_ID` and `PAYPAL_SEAT_PLAN_ID`, into `.env`. Reuse those IDs for this sandbox account.
+   Copy the two printed assignments, `PAYPAL_BASE_PLAN_ID` and `PAYPAL_SEAT_PLAN_ID`, into the repository-root `.env`. Reuse those IDs for this sandbox account.
 3. For automatic status updates, add a webhook to the same sandbox app. Use a public HTTPS backend URL ending in `/api/v1/subscriptions/webhook` and copy its webhook ID to `PAYPAL_WEBHOOK_ID`. Subscribe to `BILLING.SUBSCRIPTION.ACTIVATED`, `BILLING.SUBSCRIPTION.SUSPENDED`, `BILLING.SUBSCRIPTION.CANCELLED`, and `BILLING.SUBSCRIPTION.EXPIRED`. Use a public HTTPS tunnel to the local backend if testing webhook delivery from your laptop.
 4. Restart the backend from `apps/lumeneios`. If you use Docker Compose, recreate the backend container to pick up the environment changes. Sign in as a principal linked to a school, open **School subscription**, and approve both subscriptions with a sandbox personal buyer account. With the webhook configured, refresh the page and check that both subscriptions show **Active**.
 
@@ -231,9 +223,8 @@ The collection checks subscription pricing, role boundaries, and sandbox approva
 The source repository does not include machine-specific credentials, model weights, uploaded student work, or a database. After cloning on a new device:
 
 - **Core app and demo accounts:** install Python and Node.js dependencies with `run.bat` (Windows) or the backend/frontend steps above. Demo features use seeded local records.
-- **Ask LumenEIOS:** install and start [Ollama](https://ollama.com/download), then run `ollama pull qwen2.5:7b`. Without the model and running Ollama, the assistant returns its unavailable message.
-- **AI Question Studio:** the `qwen2.5vl:7b` Ollama model and working internet for first-time model download are required for AI generation and source-page processing.
-- **Qwen OCR preview:** install a CUDA-compatible PyTorch build and `backend/requirements-ocr.txt`, provide GPU drivers, and set `HF_TOKEN` when the selected Hugging Face model requires access. This does not work on a CPU-only host.
+- **Ask LumenEIOS and AI Question Studio:** `run.bat` installs/starts Ollama and downloads the required models. Both features need internet on first setup; without Ollama running and those models present, the AI features are unavailable.
+- **Qwen OCR preview:** `run.bat` installs a CUDA-compatible PyTorch build and `backend/requirements-ocr.txt` on Windows. A supported NVIDIA GPU and driver are required; CPU-only hosts cannot run this OCR model.
 - **Cited school-document search:** run a private Elasticsearch service, set `ELASTICSEARCH_URL` and (for authenticated hosts) `ELASTICSEARCH_API_KEY`, restart the backend, then have a principal or admin publish searchable PDFs. Until then, staff document search is unavailable.
 - **PayPal billing:** provide Sandbox or Live app credentials and matching plan IDs in `.env`. Run the plan setup script once for a new PayPal account. A public HTTPS webhook is needed for automatic subscription status updates. Without these settings, checkout is unavailable.
 - **Voice input:** requires a supported browser and microphone permission. Typed chat still works without speech recognition. Browser speech recognition availability and audio handling depend on the browser.

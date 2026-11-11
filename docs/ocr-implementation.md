@@ -2,7 +2,7 @@
 
 As of 2026-11-10 · Code paths are relative to `apps/lumeneios` in the arena repo (branch `sync/lumeneios-updates`).
 
-LumenEIOS OCR today only previews text. A teacher uploads JPG, PNG or PDF answer sheets, and the backend transcribes them with **Qwen2.5-VL-3B-Instruct-AWQ**. The model runs inside the FastAPI process on a local NVIDIA GPU. OCR does **not** grade, store results or publish marks. Every mark still needs a teacher's sign-off.
+LumenEIOS OCR today only previews text. A teacher uploads JPG, PNG or PDF answer sheets, and the backend transcribes them with Qwen2.5-VL-3B. Vast.ai uses the AWQ checkpoint; the Windows `run.bat` setup uses the standard checkpoint. The model runs inside the FastAPI process on a local NVIDIA GPU. OCR does **not** grade, store results or publish marks. Every mark still needs a teacher's sign-off.
 
 ## At a glance
 
@@ -39,7 +39,7 @@ Only Qwen actually reads the image. TrOCR and PaddleOCR are placeholders.
 
 1. **Lazy load.** The model loads on the first request, not at startup. A single shared instance is used (`_qwen_provider`).
 2. **Checks.** If `torch`, `transformers` or `qwen_vl_utils` is missing, or CUDA is not available, the provider raises `QwenOCRUnavailableError` and the API returns 503. It never quietly falls back to simulated output.
-3. **Model setup.** It reads the model ID from `settings.QWEN_VL_MODEL_ID` (default `Qwen/Qwen2.5-VL-3B-Instruct-AWQ`). The model loads in float16 with `device_map="auto"`. The processor uses `min_pixels = 512×28×28` and `max_pixels = 2048×28×28`.
+3. **Model setup.** It reads the model ID from `settings.QWEN_VL_MODEL_ID` (default `Qwen/Qwen2.5-VL-3B-Instruct`). The model loads in float16 with `device_map="auto"`. The processor uses `min_pixels = 512×28×28` and `max_pixels = 2048×28×28`.
 4. **AWQ workaround.** `lm_head` is added to `modules_to_not_convert`. Without this, Transformers swaps in randomly initialised AWQ weights and the output is garbage.
 5. **Input.** An image is opened with PIL and converted to RGB. A PDF is opened with PyMuPDF and each page is rendered to PNG at 2× zoom. PDFs are limited to 25 pages, and password-protected or empty PDFs are rejected.
 6. **Prompt.** The model is told to extract only visible text and formulas, keep the original language without translating, write `[unclear]` instead of guessing, format maths in LaTeX, and add no commentary.
@@ -87,7 +87,7 @@ The **Upload** screen is at `/upload` (`src/pages/teacher/ScanReview.tsx`). Succ
 ## Setup
 
 1. Install a **CUDA-enabled PyTorch** build that matches the GPU.
-2. Install `backend/requirements-ocr.txt`. The versions are pinned on purpose, because AutoAWQ is deprecated and only works with Transformers 4.51.3:
+2. Install `backend/requirements-ocr.txt`. AutoAWQ and Triton are Linux-only pins; Windows skips them and uses the non-AWQ checkpoint. The shared versions are pinned because AutoAWQ is deprecated and requires Transformers 4.51.3:
    - `transformers==4.51.3`, `accelerate==1.15.0`, `autoawq==0.2.9`, `triton==3.6.0`, `qwen-vl-utils==0.0.14`, `PyMuPDF==2.1`
    - Tested on an RTX 5060 (8 GB) with PyTorch 2.11.0+cu128 and Python 3.14.
 3. Optional: set `QWEN_VL_MODEL_ID` in `.env`. Use `HF_TOKEN` if the model download needs it.
