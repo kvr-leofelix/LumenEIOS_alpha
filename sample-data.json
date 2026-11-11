@@ -1,0 +1,134 @@
+{
+  "schools": [
+    {
+      "id": "school-1",
+      "name": "Sunrise Public School",
+      "location": "Indiranagar, Bengaluru",
+      "state": "Karnataka",
+      "infrastructureTier": "high-tech",
+      "academicYear": "2026-2027",
+      "principalId": "user-principal-1",
+      "principalName": "Dr. Sunita Deshmukh",
+      "studentCount": 850,
+      "teacherCount": 42,
+      "classCount": 18,
+      "pacingRisk": "medium",
+      "description": "Premier smart-school with interactive digital boards, 1:1 student tablets, and high-speed fiber connectivity.",
+      "officialWorkingDays": 220
+    }
+  ],
+  "users": [
+    {
+      "id": "user-teacher-1",
+      "email": "teacher@lumeneios.demo",
+      "name": "Vikram Sengupta",
+      "role": "teacher",
+      "schoolId": "school-1",
+      "designation": "TGT Mathematics & Science (Grade 8 & 9 Lead)",
+      "assignedClassIds": ["class-8a", "class-9b"],
+      "assignedSubjectIds": ["sub-math", "sub-sci"]
+    },
+    {
+      "id": "user-student-1",
+      "email": "student@lumeneios.demo",
+      "name": "Aarav Patel",
+      "role": "student",
+      "schoolId": "school-1",
+      "designation": "Student, Grade 8 Section A",
+      "assignedClassIds": ["class-8a"]
+    },
+    {
+      "id": "user-parent-1",
+      "email": "parent@lumeneios.demo",
+      "name": "Meera Patel",
+      "role": "parent",
+      "schoolId": "school-1",
+      "designation": "Parent / Guardian",
+      "linkedChildIds": ["user-student-1", "student-ananya"]
+    }
+  ],
+  "classes": [
+    {
+      "id": "class-8a",
+      "schoolId": "school-1",
+      "grade": 8,
+      "section": "A",
+      "name": "Class 8-A",
+      "classTeacherId": "user-teacher-1",
+      "classTeacherName": "Vikram Sengupta",
+      "studentCount": 32,
+      "subjectIds": ["sub-math", "sub-sci", "sub-eng", "sub-sst"]
+    }
+  ],
+  "subjects": [
+    {
+      "id": "sub-math",
+      "name": "Mathematics",
+      "code": "MATH-8",
+      "grade": 8,
+      "iconName": "Calculator"
+    },
+    {
+      "id": "sub-sci",
+      "name": "Science & Discovery",
+      "code": "SCI-8",
+      "grade": 8,
+      "iconName": "FlaskConical"
+    },
+    {
+      "id": "sub-eng",
+      "name": "English Communication",
+      "code": "ENG-8",
+      "grade": 8,
+      "iconName": "BookOpen"
+    },
+    {
+      "id": "sub-sst",
+      "name": "Social Studies & Civics",
+      "code": "SST-8",
+      "grade": 8,
+      "iconName": "Globe"
+    }
+  ],
+  "students": [
+    {
+      "id": "user-student-1",
+      "schoolId": "school-1",
+      "classId": "class-8a",
+      "className": "Class 8-A",
+      "name": "Aarav Patel",
+      "rollNo": 14,
+      "gender": "M",
+      "attendancePct": 94,
+      "competencies": {
+        "LU": 78,
+        "CU": 82,
+        "AU": 70,
+        "CT": 65,
+        "overall": 74
+      },
+      "baselineCompetencies": {
+        "LU": 68,
+        "CU": 72,
+        "AU": 60,
+        "CT": 54,
+        "overall": 64
+      },
+      "learningModality": "Visual",
+      "parentId": "user-parent-1",
+      "homeworkCompletionRate": 92,
+      "needsSupport": false
+    }
+  ],
+  "questions": [
+    {
+      "id": "q-1",
+      "text": "A water tank is in the shape of a cuboid with length 4m, breadth 3m, and depth 2m. If water is poured at the rate of 60 liters per minute, how many hours will it take to fill the tank completely? (1 m³ = 1000 liters)",
+      "type": "practical",
+      "marks": 4,
+      "competency": "AU",
+      "bloomLevel": "Apply",
+      "correctAnswer": "Volume = 4 * 3 * 2 = 24 m³ = 24,000 L. Time = 24,000 / 60 = 400 minutes = 6 hours and 40 minutes."
+    }
+  ]
+}

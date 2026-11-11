@@ -1,0 +1,247 @@
+/*
+ * Brand channels are space-separated RGB so Tailwind opacity utilities work.
+ * Light mode shares the same channel for chrome (backgrounds) and ink (text).
+ * Dark mode splits them so navy buttons stay dark while navy text turns light.
+ */
+
+:root,
+html[data-theme='light'] {
+  --chrome-navy-50: 240 244 248;
+  --chrome-navy-100: 217 226 236;
+  --chrome-navy-200: 188 204 220;
+  --chrome-navy-300: 156 176 196;
+  --chrome-navy-400: 90 120 148;
+  --chrome-navy-500: 51 78 104;
+  --chrome-navy-600: 36 70 102;
+  --chrome-navy-700: 26 54 93;
+  --chrome-navy-800: 20 42 67;
+  --chrome-navy-900: 14 29 46;
+  --chrome-navy-950: 8 18 30;
+  --ink-navy-50: 240 244 248;
+  --ink-navy-100: 217 226 236;
+  --ink-navy-200: 188 204 220;
+  --ink-navy-300: 156 176 196;
+  --ink-navy-400: 90 120 148;
+  --ink-navy-500: 51 78 104;
+  --ink-navy-600: 36 70 102;
+  --ink-navy-700: 26 54 93;
+  --ink-navy-800: 20 42 67;
+  --ink-navy-900: 14 29 46;
+  --ink-navy-950: 8 18 30;
+
+  --bg-teal-50: 245 240 255;
+  --bg-teal-100: 232 220 255;
+  --bg-teal-200: 214 196 250;
+  --bg-teal-300: 190 164 242;
+  --bg-teal-400: 167 132 230;
+  --bg-teal-500: 140 102 214;
+  --bg-teal-600: 124 86 198;
+  --bg-teal-700: 104 68 172;
+  --bg-teal-800: 84 52 142;
+  --bg-teal-900: 62 38 108;
+  --ink-teal-50: 245 240 255;
+  --ink-teal-100: 232 220 255;
+  --ink-teal-200: 214 196 250;
+  --ink-teal-300: 150 110 210;
+  --ink-teal-400: 132 90 196;
+  --ink-teal-500: 124 86 198;
+  --ink-teal-600: 110 72 180;
+  --ink-teal-700: 96 60 164;
+  --ink-teal-800: 78 46 136;
+  --ink-teal-900: 58 32 104;
+
+  --surface-bg: 243 246 248;
+  --surface-card: 255 255 255;
+  --surface-border: 225 231 237;
+  --surface-border-hover: 203 213 225;
+  --content-primary: 24 34 48;
+  --content-secondary: 102 112 133;
+  --content-muted: 152 162 179;
+  color-scheme: light;
+}
+
+html[data-theme='dark'] {
+  --chrome-navy-50: 30 48 66;
+  --chrome-navy-100: 36 56 76;
+  --chrome-navy-200: 44 66 88;
+  --chrome-navy-300: 70 96 122;
+  --chrome-navy-400: 90 116 142;
+  --chrome-navy-500: 51 78 104;
+  --chrome-navy-600: 32 52 74;
+  --chrome-navy-700: 24 42 64;
+  --chrome-navy-800: 18 34 54;
+  --chrome-navy-900: 12 22 38;
+  --chrome-navy-950: 8 14 24;
+  --ink-navy-50: 14 29 46;
+  --ink-navy-100: 20 42 67;
+  --ink-navy-200: 51 78 104;
+  --ink-navy-300: 148 168 188;
+  --ink-navy-400: 176 194 210;
+  --ink-navy-500: 196 210 222;
+  --ink-navy-600: 210 220 230;
+  --ink-navy-700: 220 228 236;
+  --ink-navy-800: 230 236 242;
+  --ink-navy-900: 238 242 246;
+  --ink-navy-950: 248 250 252;
+
+  --bg-teal-50: 16 36 64;
+  --bg-teal-100: 20 48 88;
+  --bg-teal-200: 26 64 116;
+  --bg-teal-300: 36 88 160;
+  --bg-teal-400: 59 130 246;
+  --bg-teal-500: 37 99 235;
+  --bg-teal-600: 29 78 216;
+  --bg-teal-700: 96 165 250;
+  --bg-teal-800: 147 197 253;
+  --bg-teal-900: 191 219 254;
+  --ink-teal-50: 239 246 255;
+  --ink-teal-100: 219 234 254;
+  --ink-teal-200: 191 219 254;
+  --ink-teal-300: 147 197 253;
+  --ink-teal-400: 96 165 250;
+  --ink-teal-500: 96 165 250;
+  --ink-teal-600: 147 197 253;
+  --ink-teal-700: 186 220 254;
+  --ink-teal-800: 210 230 255;
+  --ink-teal-900: 230 240 255;
+
+  --surface-bg: 10 18 30;
+  --surface-card: 18 32 50;
+  --surface-border: 48 68 90;
+  --surface-border-hover: 70 96 122;
+  --content-primary: 236 242 247;
+  --content-secondary: 176 190 204;
+  --content-muted: 130 146 164;
+  color-scheme: dark;
+}
+
+/* Soft status chips stay readable in dark mode. */
+html[data-theme='dark'] .bg-gray-50,
+html[data-theme='dark'] .hover\:bg-gray-50:hover {
+  background-color: rgb(var(--surface-bg));
+}
+html[data-theme='dark'] .bg-gray-100,
+html[data-theme='dark'] .bg-gray-200,
+html[data-theme='dark'] .bg-gray-200\/60,
+html[data-theme='dark'] .hover\:bg-gray-100:hover,
+html[data-theme='dark'] .hover\:bg-gray-200:hover {
+  background-color: rgb(var(--chrome-navy-100));
+}
+html[data-theme='dark'] .border-gray-200,
+html[data-theme='dark'] .border-gray-300 {
+  border-color: rgb(var(--surface-border));
+}
+html[data-theme='dark'] .text-gray-500,
+html[data-theme='dark'] .text-gray-700 {
+  color: rgb(var(--content-secondary));
+}
+
+html[data-theme='dark'] .bg-rose-50,
+html[data-theme='dark'] .bg-rose-50\/30,
+html[data-theme='dark'] .bg-rose-50\/40,
+html[data-theme='dark'] .hover\:bg-rose-50:hover {
+  background-color: rgb(72 28 36);
+}
+html[data-theme='dark'] .bg-rose-100 {
+  background-color: rgb(92 36 46);
+}
+html[data-theme='dark'] .text-rose-600,
+html[data-theme='dark'] .text-rose-700,
+html[data-theme='dark'] .text-rose-800,
+html[data-theme='dark'] .text-rose-900,
+html[data-theme='dark'] .text-rose-950 {
+  color: rgb(253 186 196);
+}
+html[data-theme='dark'] .border-rose-200 {
+  border-color: rgb(140 64 76);
+}
+
+html[data-theme='dark'] .bg-emerald-50 {
+  background-color: rgb(16 52 40);
+}
+html[data-theme='dark'] .bg-emerald-100 {
+  background-color: rgb(18 68 52);
+}
+html[data-theme='dark'] .text-emerald-600,
+html[data-theme='dark'] .text-emerald-700,
+html[data-theme='dark'] .text-emerald-800,
+html[data-theme='dark'] .text-emerald-900 {
+  color: rgb(134 239 182);
+}
+html[data-theme='dark'] .border-emerald-200 {
+  border-color: rgb(36 110 80);
+}
+
+html[data-theme='dark'] .bg-amber-50,
+html[data-theme='dark'] .bg-amber-50\/30,
+html[data-theme='dark'] .bg-amber-50\/40,
+html[data-theme='dark'] .bg-amber-50\/50,
+html[data-theme='dark'] .bg-amber-50\/70 {
+  background-color: rgb(68 46 16);
+}
+html[data-theme='dark'] .bg-amber-100 {
+  background-color: rgb(88 60 18);
+}
+html[data-theme='dark'] .text-amber-600,
+html[data-theme='dark'] .text-amber-700,
+html[data-theme='dark'] .text-amber-800,
+html[data-theme='dark'] .text-amber-900,
+html[data-theme='dark'] .text-amber-950 {
+  color: rgb(252 211 122);
+}
+html[data-theme='dark'] .border-amber-200,
+html[data-theme='dark'] .border-amber-200\/60,
+html[data-theme='dark'] .border-amber-200\/70,
+html[data-theme='dark'] .border-amber-300 {
+  border-color: rgb(146 96 32);
+}
+
+html[data-theme='dark'] .bg-sky-50,
+html[data-theme='dark'] .hover\:bg-sky-50\/30:hover {
+  background-color: rgb(16 42 64);
+}
+html[data-theme='dark'] .text-sky-600,
+html[data-theme='dark'] .text-sky-700 {
+  color: rgb(125 211 252);
+}
+html[data-theme='dark'] .border-sky-200 {
+  border-color: rgb(40 90 120);
+}
+
+html[data-theme='dark'] .bg-blue-50 {
+  background-color: rgb(20 40 72);
+}
+html[data-theme='dark'] .bg-blue-100 {
+  background-color: rgb(28 52 92);
+}
+html[data-theme='dark'] .text-blue-600,
+html[data-theme='dark'] .text-blue-700,
+html[data-theme='dark'] .text-blue-800 {
+  color: rgb(147 197 253);
+}
+html[data-theme='dark'] .border-blue-200 {
+  border-color: rgb(48 80 130);
+}
+
+html[data-theme='dark'] .bg-indigo-50,
+html[data-theme='dark'] .bg-indigo-50\/30,
+html[data-theme='dark'] .hover\:bg-indigo-50\/30:hover {
+  background-color: rgb(36 32 72);
+}
+html[data-theme='dark'] .text-indigo-600 {
+  color: rgb(186 184 252);
+}
+
+html[data-theme='dark'] .from-rose-50 {
+  --tw-gradient-from: rgb(72 28 36) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(72 28 36 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+html[data-theme='dark'] .to-amber-50 {
+  --tw-gradient-to: rgb(68 46 16) var(--tw-gradient-to-position);
+}
+html[data-theme='dark'] .from-teal-50 {
+  --tw-gradient-from: rgb(16 36 64) var(--tw-gradient-from-position);
+  --tw-gradient-to: rgb(16 36 64 / 0) var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
