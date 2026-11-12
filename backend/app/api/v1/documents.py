@@ -9,22 +9,8 @@ from backend.app.db.session import get_db
 from backend.app.models.entities import Document, User, AuditEvent, utc_now
 from backend.app.schemas.ocr import DocumentOut, BulkDocumentItemResult, BulkDocumentUploadResponse
 from backend.app.services.storage_service import MAX_FILE_SIZE, storage_service
-from backend.app.services.document_search import index_document
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
-
-
-@router.post("/{document_id}/publish-to-assistant")
-async def publish_to_assistant(
-    document_id: str,
-    db: AsyncSession = Depends(get_db),
-    user: User = Depends(require_roles("admin", "principal", authenticated=True)),
-):
-    doc = await db.get(Document, document_id)
-    if not doc:
-        raise HTTPException(404, "Document not found.")
-    await require_school_access(db, user, doc.school_id)
-    return {"indexed_passages": await index_document(doc)}
 
 
 @router.get("", response_model=List[DocumentOut])

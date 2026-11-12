@@ -84,39 +84,3 @@ async def test_student_and_admin_receive_scoped_context(db_session):
     context = await assistant.assistant_context(db_session, admin, None)
     assert context["schools"]
     assert all(set(school) == {"name", "student_count", "average_overall"} for school in context["schools"])
-
-
-@pytest.mark.asyncio
-async def test_school_search_returns_only_retrieved_citations(client, teacher_token, student_token, monkeypatch):
-    monkeypatch.setattr(assistant.settings, "ELASTICSEARCH_URL", "http://elastic.test")
-
-    async def search(db, school_id, message):
-        assert school_id == "school-1"
-        return [{"document_id": "policy-1", "name": "Policy.pdf", "page": 3, "text": "One retake is allowed."}]
-
-    async def generate(self, url, *, json):
-        assert "One retake is allowed." in json["messages"][0]["content"]
-        return httpx.Response(200, request=httpx.Request("POST", url), json={
-            "message": {"content": '{"answer":"One retake is allowed.","citations":[1,2]}'},
-        })
-
-    monkeypatch.setattr(assistant, "search_documents", search)
-    monkeypatch.setattr(httpx.AsyncClient, "post", generate)
-    body = {"message": "Can I retake?", "search_library": True}
-    for token, code in ((teacher_token, 200), (student_token, 403)):
-        response = await client.request("POST", URL, json=body, headers={"Authorization": f"Bearer {token}"})
-        assert response.status_code == code
-        if code == 200:
-            assert response.json()["citations"] == [{"document_id": "policy-1", "name": "Policy.pdf", "page": 3}]
-
-
-def test_pdf_passages_keep_original_page_number(tmp_path):
-    import pymupdf
-    from backend.app.services.document_search import pdf_passages
-
-    path = tmp_path / "policy.pdf"
-    with pymupdf.open() as pdf:
-        pdf.new_page()
-        pdf.new_page().insert_text((72, 72), "One retake is allowed.")
-        pdf.save(path)
-    assert pdf_passages(path) == [(2, 0, "One retake is allowed.")]

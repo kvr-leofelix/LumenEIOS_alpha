@@ -24,14 +24,14 @@ The script clones the `main` branch into `/workspace/LumenEIOS_alpha`, installs 
 
 ## Optional services and credentials
 
-School-library search stays disabled if `ELASTICSEARCH_URL` and `ELASTICSEARCH_API_KEY` are empty. For PayPal subscriptions, add the sandbox or live `PAYPAL_*` settings to `/workspace/LumenEIOS_alpha/.env`. For webhook updates, also set `PAYPAL_WEBHOOK_ID` and register the public HTTPS route `/api/v1/subscriptions/webhook` in the matching PayPal app. After editing `.env`, restart the API with:
+For PayPal subscriptions, add the sandbox or live `PAYPAL_*` settings to `/workspace/LumenEIOS_alpha/.env`. For webhook updates, also set `PAYPAL_WEBHOOK_ID` and register the public HTTPS route `/api/v1/subscriptions/webhook` in the matching PayPal app. After editing `.env`, restart the API with:
 
 ```bash
 supervisorctl restart lumeneios-api
 ```
 
-Keep secrets private and do not expose Ollama's port `11434` or Elasticsearch's port `9200` publicly.
+Keep secrets private and do not expose Ollama's port `11434` publicly.
 
 ## Storage and limitations
 
-The database, uploads, model downloads, and Elasticsearch data live on the instance disk. They are lost when the instance is destroyed unless you use persistent storage or back them up. The initializer has not been run on a real Vast instance; confirm GPU model loading and persistent storage before using real student data. Put the public app behind HTTPS before handling student data.
+The database, uploads, and model downloads live on the instance disk. They are lost when the instance is destroyed unless you use persistent storage or back them up. The initializer has not been run on a real Vast instance; confirm GPU model loading and persistent storage before using real student data. Put the public app behind HTTPS before handling student data.

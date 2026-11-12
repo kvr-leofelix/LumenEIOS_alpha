@@ -204,31 +204,16 @@ The local checkout redirects use `http://localhost:3000`. Set `PAYPAL_RETURN_URL
 
 ---
 
-### 8.5 School document search and Postman
-
-For local development, start Elasticsearch from the app directory:
-
-```powershell
-docker compose -f infrastructure/elasticsearch.local.yml up -d
-```
-
-Set `ELASTICSEARCH_URL=http://127.0.0.1:9200` in `.env` and restart the backend. This Docker configuration binds to localhost and is for local testing. For hosted deployments use a private, authenticated Elasticsearch endpoint and set `ELASTICSEARCH_API_KEY` to its encoded API key.
-
-Import `postman/lumeneios.postman_collection.json`. Set local values for `email`, `password`, and `role`, then run **Login and save token for role** for a principal, teacher, and student. In **School document search**, attach a searchable policy PDF containing your test topic, upload it as a principal, then publish it and run the teacher's search. The teacher and principal must belong to the same school. Staff can also select **Search school documents** in **Ask LumenEIOS**. The PDF links show the source page. Image-only PDFs need searchable text added first.
-
-The collection checks subscription pricing, role boundaries, and sandbox approval links. Run **Start sandbox checkout for 12 seats** individually on a test school without an open subscription. Approve both links using a PayPal sandbox Personal account. Status changes require a working PayPal webhook. Keep passwords and tokens in local Postman values.
-
-### 8.6 What requires setup on a fresh clone
+### 8.5 What requires setup on a fresh clone
 
 The source repository does not include machine-specific credentials, model weights, uploaded student work, or a database. After cloning on a new device:
 
 - **Core app and demo accounts:** install Python and Node.js dependencies with `run.bat` (Windows) or the backend/frontend steps above. Demo features use seeded local records.
 - **Ask LumenEIOS and AI Question Studio:** `run.bat` installs/starts Ollama and downloads the required models. Both features need internet on first setup; without Ollama running and those models present, the AI features are unavailable.
 - **Qwen OCR preview:** `run.bat` installs a CUDA-compatible PyTorch build and `backend/requirements-ocr.txt` on Windows. A supported NVIDIA GPU and driver are required; CPU-only hosts cannot run this OCR model.
-- **Cited school-document search:** run a private Elasticsearch service, set `ELASTICSEARCH_URL` and (for authenticated hosts) `ELASTICSEARCH_API_KEY`, restart the backend, then have a principal or admin publish searchable PDFs. Until then, staff document search is unavailable.
 - **PayPal billing:** provide Sandbox or Live app credentials and matching plan IDs in `.env`. Run the plan setup script once for a new PayPal account. A public HTTPS webhook is needed for automatic subscription status updates. Without these settings, checkout is unavailable.
 - **Voice input:** requires a supported browser and microphone permission. Typed chat still works without speech recognition. Browser speech recognition availability and audio handling depend on the browser.
-- **Existing school data:** the SQLite database, upload directory, Elasticsearch index, and PayPal configuration live outside Git. Copy or restore them from a secure backup to retain real school data. A new clone starts with its own local database and has no uploaded documents.
+- **Existing school data:** the SQLite database, upload directory, and PayPal configuration live outside Git. Copy or restore them from a secure backup to retain real school data. A new clone starts with its own local database and has no uploaded documents.
 
 Use `docs/vast-ai-deployment.md` and `SET_UP.md` for GPU-hosted setup. Keep `.env`, API secrets, and real student data out of Git.
 

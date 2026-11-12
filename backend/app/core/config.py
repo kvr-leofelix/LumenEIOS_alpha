@@ -57,8 +57,6 @@ class Settings(BaseSettings):
     QWEN_QUESTION_STUDIO_MODEL_ID: str = "qwen2.5vl:7b"
     OLLAMA_BASE_URL: str = "http://127.0.0.1:11434"
     ASSISTANT_MODEL: str = "qwen2.5:7b"
-    ELASTICSEARCH_URL: str = ""
-    ELASTICSEARCH_API_KEY: SecretStr = SecretStr("")
 
     # LLM Provider
     LLM_PROVIDER: str = "deterministic"  # "deterministic", "huggingface", "hosted"

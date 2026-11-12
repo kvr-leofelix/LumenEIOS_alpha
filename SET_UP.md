@@ -75,8 +75,6 @@ OLLAMA_BASE_URL=http://127.0.0.1:11434
 QWEN_VL_MODEL_ID=Qwen/Qwen2.5-VL-3B-Instruct-AWQ
 QWEN_QUESTION_STUDIO_MODEL_ID=qwen2.5vl:7b
 ASSISTANT_MODEL=qwen2.5:7b
-ELASTICSEARCH_URL=${ELASTICSEARCH_URL:-}
-ELASTICSEARCH_API_KEY=${ELASTICSEARCH_API_KEY:-}
 PAYPAL_ENV=${PAYPAL_ENV:-sandbox}
 PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID:-}
 PAYPAL_CLIENT_SECRET=${PAYPAL_CLIENT_SECRET:-}
@@ -90,8 +88,6 @@ EOF
   unset secret
 fi
 
-# For school-library RAG, export ELASTICSEARCH_URL and the encoded
-# ELASTICSEARCH_API_KEY before running this setup. Leave blank to disable search.
 # Set the PAYPAL_* environment variables before running for sandbox checkout.
 
 sed -i 's|<BrowserRouter>|<BrowserRouter basename="/proxy/absolute/3001">|' src/main.tsx

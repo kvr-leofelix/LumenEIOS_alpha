@@ -14,7 +14,7 @@ interface Recognition {
   onend: (() => void) | null;
 }
 
-type Entry = AssistantTurn & Pick<Partial<AssistantReply>, 'links' | 'citations'>;
+type Entry = AssistantTurn & Pick<Partial<AssistantReply>, 'links'>;
 const examples: Partial<Record<Role, string[]>> = {
   admin: ['Compare overall competency across schools', 'Open audit logs'],
   student: ['Explain my competency scores', 'Open my answer sheets'],
@@ -30,7 +30,6 @@ export function AssistantPanel({ role }: { role: Role }) {
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
   const [notice, setNotice] = useState('');
-  const [searchLibrary, setSearchLibrary] = useState(false);
   const recognition = useRef<Recognition | null>(null);
   const pending = useRef<AbortController | null>(null);
   const input = useRef<HTMLInputElement>(null);
@@ -102,9 +101,9 @@ export function AssistantPanel({ role }: { role: Role }) {
     const history = messages.slice(-8).map(({ role, content }) => ({ role, content }));
     setMessages([...messages, { role: 'user', content: message }]);
     try {
-      const reply = await apiClient.assistant.chat(message, history, controller.signal, searchLibrary);
+      const reply = await apiClient.assistant.chat(message, history, controller.signal);
       setMessages(entries => [...entries, {
-        role: 'assistant', content: reply.answer, links: reply.links, citations: reply.citations,
+        role: 'assistant', content: reply.answer, links: reply.links,
       }]);
     } catch (error) {
       if (!controller.signal.aborted) {
@@ -115,23 +114,6 @@ export function AssistantPanel({ role }: { role: Role }) {
     } finally {
       pending.current = null;
       if (!controller.signal.aborted) setBusy(false);
-    }
-  }
-
-  async function openSource(source: AssistantReply['citations'][number]) {
-    const tab = window.open('about:blank', '_blank');
-    if (!tab) {
-      setNotice('Allow pop-ups to open the source PDF.');
-      return;
-    }
-    tab.opener = null;
-    try {
-      const url = URL.createObjectURL(await apiClient.assistant.document(source.document_id));
-      tab.location.replace(`${url}#page=${source.page}`);
-      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    } catch {
-      tab.close();
-      setNotice('Could not open the source PDF.');
     }
   }
 
@@ -156,19 +138,13 @@ export function AssistantPanel({ role }: { role: Role }) {
                 {example}
               </Button>
             ))}
-            {messages.map(({ role: author, content, links, citations }, index) => (
+            {messages.map(({ role: author, content, links }, index) => (
               <div key={index} className={author === 'user' ? 'ml-8 rounded-lg bg-navy-800 p-3 text-white' : 'mr-4 rounded-lg bg-surface-bg p-3 text-content-primary'}>
                 <p className="whitespace-pre-wrap break-words">{content}</p>
                 {links?.map(link => (
                   <Link key={link.path} to={link.path} onClick={close} className="mt-2 block font-semibold underline">
                     Open {link.label}
                   </Link>
-                ))}
-                {citations?.map((source, sourceIndex) => (
-                  <button key={sourceIndex} type="button" onClick={() => void openSource(source)}
-                    className="mt-2 block text-left font-semibold underline">
-                    {source.name} · page {source.page}
-                  </button>
                 ))}
                 {author === 'assistant' && 'speechSynthesis' in window && (
                   <button type="button" aria-label="Read answer aloud" className="mt-2 rounded p-1 text-content-secondary"
@@ -184,12 +160,6 @@ export function AssistantPanel({ role }: { role: Role }) {
             {busy && <p className="text-content-secondary">Preparing an answer…</p>}
           </div>
           <form onSubmit={send} className="border-t border-surface-border p-3">
-            {['admin', 'principal', 'teacher'].includes(role) && (
-              <label className="mb-2 flex items-center gap-2 text-sm text-content-secondary">
-                <input type="checkbox" checked={searchLibrary} onChange={event => setSearchLibrary(event.target.checked)} />
-                Search school documents
-              </label>
-            )}
             {(notice || listening) && <p role="status" className="mb-2 text-sm text-content-secondary">{listening ? 'Listening…' : notice}</p>}
             <div className="flex items-center gap-2">
               <input ref={input} value={draft} onChange={event => setDraft(event.target.value)} maxLength={2000}

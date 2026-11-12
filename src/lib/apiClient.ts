@@ -247,22 +247,14 @@ export type AssistantReply = {
   answer: string;
   links: { label: string; path: string }[];
   model_available: boolean;
-  citations: { document_id: string; name: string; page: number }[];
 };
 
 export const apiClient = {
   assistant: {
-    chat: (message: string, history: AssistantTurn[], signal: AbortSignal, searchLibrary = false) =>
+    chat: (message: string, history: AssistantTurn[], signal: AbortSignal) =>
       request<AssistantReply>('/assistant/chat', {
-        method: 'POST', body: JSON.stringify({ message, history, search_library: searchLibrary }), signal,
+        method: 'POST', body: JSON.stringify({ message, history }), signal,
       }),
-    document: async (id: string) => {
-      const response = await fetch(`${API_BASE_URL}/documents/${encodeURIComponent(id)}/download`, {
-        headers: authHeaders(),
-      });
-      if (!response.ok) throw new ApiError(response.status, 'Could not open the source PDF.');
-      return response.blob();
-    },
   },
   // Authentication
   auth: {
