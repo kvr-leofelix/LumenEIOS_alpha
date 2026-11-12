@@ -54,9 +54,6 @@ class Settings(BaseSettings):
     HF_TOKEN: str = ""
     DEFAULT_VISION_MODEL: str = "microsoft/trocr-base-handwritten"
     QWEN_VL_MODEL_ID: str = "Qwen/Qwen2.5-VL-3B-Instruct"
-    QWEN_QUESTION_STUDIO_MODEL_ID: str = "qwen2.5vl:7b"
-    OLLAMA_BASE_URL: str = "http://127.0.0.1:11434"
-    ASSISTANT_MODEL: str = "qwen2.5:7b"
 
     # LLM Provider
     LLM_PROVIDER: str = "deterministic"  # "deterministic", "huggingface", "hosted"

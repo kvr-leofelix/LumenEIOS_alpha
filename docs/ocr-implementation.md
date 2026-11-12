@@ -95,7 +95,7 @@ The **Upload** screen is at `/upload` (`src/pages/teacher/ScanReview.tsx`). Succ
 
 Measured speed: about 4 s per image and about 5 GB VRAM on the RTX 5060. On a Colab T4 it took 3–121 s per image.
 
-**About Qwen2.5-VL-7B:** the app only loads models through Hugging Face Transformers. It does not talk to Ollama. So the `qwen2.5vl:7b` model in a local Ollama install is not used. To try 7B, set `QWEN_VL_MODEL_ID` to a Hugging Face 7B AWQ checkpoint (for example `Qwen/Qwen2.5-VL-7B-Instruct-AWQ`). It downloads on first use and needs more VRAM than the 3B model. 7B has not been tested on handwriting yet.
+Worksheet OCR, AI Question Studio Beta, and Ask LumenEIOS share one model per backend process. Set QWEN_VL_MODEL_ID to select the Hugging Face checkpoint for all three features.
 
 ## Tests
 

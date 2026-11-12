@@ -1,12 +1,12 @@
 # Vast.ai deployment
 
-Use the repository-root [`SET_UP.md`](../SET_UP.md) as the one-run setup for a Vast.ai **Jupyter** instance. It clones the repository and installs the application, CUDA OCR dependencies, Ollama, and both Ollama models. You do not need to run separate `pip install`, `ollama pull`, build, or service-start commands.
+Use the repository-root [`SET_UP.md`](../SET_UP.md) as the one-run setup for a Vast.ai **Jupyter** instance. It clones the repository and installs the application, CUDA dependencies, and one Qwen2.5-VL 3B AWQ checkpoint for worksheet OCR, Question Studio Beta, and the assistant.
 
 ## Choose an instance
 
 | Setting | Recommended |
 |---|---|
-| Image | Vast.ai Jupyter image with Ubuntu, Python, Conda, and Jupyter Server |
+| Image | Vast.ai Jupyter image with Ubuntu, Python, and Jupyter Server |
 | GPU | NVIDIA GPU with at least 16 GB VRAM |
 | Driver | NVIDIA driver 570 or newer for the CUDA 12.8 PyTorch wheel |
 | Disk | At least 100 GB for dependencies, models, and local application data |
@@ -17,10 +17,10 @@ The setup script expects the Vast Jupyter paths `/workspace`, `/opt/sys-venv/bin
 
 1. Open the instance's Jupyter terminal.
 2. Open [`SET_UP.md`](../SET_UP.md), copy its full `bash` code block, and paste it into the terminal.
-3. Wait for setup to finish. The first run downloads Python packages and three model weights (two Ollama models and the Hugging Face OCR model), so it can take a while.
+3. Wait for setup to finish. The first run downloads Python packages and one Hugging Face model, so it can take a while.
 4. Open the printed Jupyter proxy path: `/proxy/absolute/3001/`.
 
-The script clones the `main` branch into `/workspace/LumenEIOS_alpha`, installs CUDA PyTorch when the venv does not already have a working CUDA build, installs `backend/requirements-ocr.txt`, installs Ollama when missing, and pulls `qwen2.5vl:7b` and `qwen2.5:7b`. It creates `.env` on first run and supervises the API and frontend.
+The script clones the `main` branch into `/workspace/LumenEIOS_alpha`, installs CUDA PyTorch when the venv does not already have a working CUDA build, installs `backend/requirements-ocr.txt`, and caches the shared Qwen checkpoint. It creates `.env` on first run and supervises the API and frontend.
 
 ## Optional services and credentials
 
@@ -30,7 +30,7 @@ For PayPal subscriptions, add the sandbox or live `PAYPAL_*` settings to `/works
 supervisorctl restart lumeneios-api
 ```
 
-Keep secrets private and do not expose Ollama's port `11434` publicly.
+Keep secrets private.
 
 ## Storage and limitations
 

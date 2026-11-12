@@ -138,7 +138,7 @@ class QwenVisionOCRProvider(BaseOCRProvider):
         if self._model is not None:
             return
 
-        report_progress("model", "Loading the OCR model", 0, 1)
+        report_progress("model", "Loading the shared Qwen model", 0, 1)
 
         try:
             import torch
@@ -186,19 +186,25 @@ class QwenVisionOCRProvider(BaseOCRProvider):
         self._processor = processor
         self._model = model
         self._process_vision_info = process_vision_info
-        report_progress("model", "Loaded the OCR model", 1, 1)
+        report_progress("model", "Loaded the shared Qwen model", 1, 1)
+
+    def generate(self, messages: list[dict[str, Any]], max_new_tokens: int) -> str:
+        """Generate with the same model and GPU lock used by worksheet OCR."""
+        with self._inference_lock:
+            self._load_model()
+            return self._generate_locked(messages, max_new_tokens)
 
     def _infer_image(self, image: Any) -> str:
+        return self._generate_locked([{
+            "role": "user",
+            "content": [
+                {"type": "image", "image": image},
+                {"type": "text", "text": self._prompt},
+            ],
+        }], max_new_tokens=2048)
+
+    def _generate_locked(self, messages: list[dict[str, Any]], max_new_tokens: int) -> str:
         try:
-            messages = [
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "image", "image": image},
-                        {"type": "text", "text": self._prompt},
-                    ],
-                }
-            ]
             text = self._processor.apply_chat_template(
                 messages, tokenize=False, add_generation_prompt=True
             )
@@ -209,12 +215,12 @@ class QwenVisionOCRProvider(BaseOCRProvider):
                 videos=video_inputs,
                 padding=True,
                 return_tensors="pt",
-            ).to("cuda")
+            ).to(self._model.device)
 
             with self._torch.inference_mode():
                 generated_ids = self._model.generate(
                     **inputs,
-                    max_new_tokens=2048,
+                    max_new_tokens=max_new_tokens,
                     do_sample=False,
                 )
 
@@ -228,9 +234,9 @@ class QwenVisionOCRProvider(BaseOCRProvider):
                 clean_up_tokenization_spaces=False,
             )[0].strip()
         except Exception as exc:
-            logger.exception("Qwen OCR inference failed")
+            logger.exception("Qwen inference failed")
             raise QwenOCRInferenceError(
-                "Qwen OCR inference failed; check backend logs for the model error."
+                "Qwen inference failed; check backend logs for the model error."
             ) from exc
 
     def _extract_sync(self, document_path: str, options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -319,7 +325,7 @@ class QwenVisionOCRProvider(BaseOCRProvider):
         }
 
 
-_qwen_provider = QwenVisionOCRProvider()
+qwen_model = QwenVisionOCRProvider()
 
 
 def get_ocr_provider(provider_name: str = "simulated") -> BaseOCRProvider:
@@ -328,5 +334,5 @@ def get_ocr_provider(provider_name: str = "simulated") -> BaseOCRProvider:
     elif provider_name == "paddleocr":
         return PaddleOCRProvider()
     elif provider_name == "qwen":
-        return _qwen_provider
+        return qwen_model
     return SimulatedOCRProvider()

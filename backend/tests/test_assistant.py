@@ -1,6 +1,5 @@
 import json
 
-import httpx
 import pytest
 
 from backend.app.api.v1 import assistant
@@ -12,13 +11,11 @@ URL = "/api/v1/assistant/chat"
 async def test_assistant_scopes_parent_records_and_navigation(client, parent_token, monkeypatch):
     captured = {}
 
-    async def answer(self, url, *, json):
-        captured.update(json)
-        return httpx.Response(200, request=httpx.Request("POST", url), json={
-            "message": {"content": '{"answer":"Progress overview","page":"School subscription"}'},
-        })
+    def answer(messages, max_new_tokens):
+        captured["messages"] = messages
+        return '{"answer":"Progress overview","page":"School subscription"}'
 
-    monkeypatch.setattr(httpx.AsyncClient, "post", answer)
+    monkeypatch.setattr(assistant.qwen_model, "generate", answer)
     response = await client.request(
         "POST", URL, json={"message": "How is my child doing?"},
         headers={"Authorization": f"Bearer {parent_token}"},

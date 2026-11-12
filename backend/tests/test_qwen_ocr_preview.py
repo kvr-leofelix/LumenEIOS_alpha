@@ -25,8 +25,8 @@ def png_bytes() -> bytes:
 @pytest.fixture
 def fake_model(monkeypatch):
     """Skip the GPU while keeping the provider's file handling real."""
-    monkeypatch.setattr(ocr_service._qwen_provider, "_load_model", lambda: None)
-    monkeypatch.setattr(ocr_service._qwen_provider, "_infer_image", lambda _image: "recognized text")
+    monkeypatch.setattr(ocr_service.qwen_model, "_load_model", lambda: None)
+    monkeypatch.setattr(ocr_service.qwen_model, "_infer_image", lambda _image: "recognized text")
 
 
 async def post(client, token, name, content, content_type="application/octet-stream"):
@@ -200,7 +200,7 @@ async def test_preview_returns_json_for_unexpected_errors(client, teacher_token,
     def fail(*_args):
         raise KeyError("unexpected")
 
-    monkeypatch.setattr(ocr_service._qwen_provider, "_extract_sync", fail)
+    monkeypatch.setattr(ocr_service.qwen_model, "_extract_sync", fail)
 
     response = await post(client, teacher_token, "sheet.png", png_bytes(), "image/png")
 

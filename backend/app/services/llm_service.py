@@ -1,18 +1,16 @@
 import asyncio
-import base64
 import json
-import logging
 import re
 import threading
 import uuid
+from io import BytesIO
 from typing import Dict, Any, List, Optional
-import httpx
 
-from backend.app.core.config import settings
+from PIL import Image
+
+from backend.app.services.ocr_service import QwenOCRInferenceError, QwenOCRUnavailableError, qwen_model
 from backend.app.services.progress import report_progress
 from backend.app.services.web_source import WebSource, chunk_text
-
-logger = logging.getLogger(__name__)
 
 
 class QwenQuestionStudioUnavailable(RuntimeError):
@@ -222,74 +220,23 @@ class QwenQuestionStudioService:
         output_schema: Optional[Dict[str, Any]] = None,
         report_step: Optional[str] = None,
     ) -> str:
-        message = {"role": "user", "content": prompt}
-        if image is not None:
-            message["images"] = [base64.b64encode(image).decode("ascii")]
-        payload = {
-            "model": settings.QWEN_QUESTION_STUDIO_MODEL_ID,
-            "messages": [message],
-            "stream": report_step is not None,
-            "options": {"temperature": 0, "num_predict": max_new_tokens, "num_ctx": 8192},
-        }
         if output_schema is not None:
-            payload["format"] = output_schema
-        url = f"{settings.OLLAMA_BASE_URL.rstrip('/')}/api/chat"
-        timeout = httpx.Timeout(300, connect=5)
+            prompt += "\nReturn only one JSON object matching this schema:\n" + json.dumps(output_schema)
+        content = [{"type": "text", "text": prompt}]
+        if image is not None:
+            with Image.open(BytesIO(image)) as page:
+                content.insert(0, {"type": "image", "image": page.convert("RGB")})
+        if report_step:
+            report_progress(report_step, "Qwen is generating the questions", 0, 0)
         try:
-            if report_step is None:
-                response = httpx.post(url, json=payload, timeout=timeout)
-                response.raise_for_status()
-                return response.json()["message"]["content"].strip()
-
-            parts: List[str] = []
-            written = 0
-            reported = 0
-            with httpx.Client(timeout=timeout) as client:
-                with client.stream("POST", url, json=payload) as response:
-                    response.raise_for_status()
-                    for line in response.iter_lines():
-                        if not line:
-                            continue
-                        piece = ((json.loads(line).get("message") or {}).get("content")) or ""
-                        if not piece:
-                            continue
-                        parts.append(piece)
-                        written += len(piece)
-                        if written - reported >= 200:
-                            reported = written
-                            report_progress(
-                                report_step,
-                                f"Qwen has written {written} characters of the questions",
-                                written,
-                                0,
-                            )
-            text = "".join(parts).strip()
-            report_progress(
-                report_step,
-                f"Qwen finished writing {len(text)} characters of the questions",
-                len(text),
-                0,
-            )
-            return text
-        except httpx.ConnectError as exc:
-            raise QwenQuestionStudioUnavailable(
-                "Could not connect to Ollama. Start Ollama on the backend machine and try again."
-            ) from exc
-        except httpx.TimeoutException as exc:
-            raise QwenQuestionStudioUnavailable(
-                "Ollama took too long to respond. Try fewer questions or a shorter chapter PDF."
-            ) from exc
-        except httpx.HTTPStatusError as exc:
-            if exc.response.status_code == 404:
-                raise QwenQuestionStudioUnavailable(
-                    f"Ollama could not find '{settings.QWEN_QUESTION_STUDIO_MODEL_ID}'. Check the installed models."
-                ) from exc
-            logger.warning("Ollama Question Studio returned HTTP %s", exc.response.status_code)
-            raise QwenQuestionStudioInferenceError(
-                "Ollama could not run the model. Check the Ollama logs."
-            ) from exc
-        except (httpx.RequestError, KeyError, TypeError, AttributeError, ValueError) as exc:
-            raise QwenQuestionStudioInferenceError("Ollama returned an invalid response.") from exc
+            text = qwen_model.generate([{"role": "user", "content": content}], max_new_tokens)
+        except QwenOCRUnavailableError as exc:
+            raise QwenQuestionStudioUnavailable(str(exc)) from exc
+        except QwenOCRInferenceError as exc:
+            raise QwenQuestionStudioInferenceError(str(exc)) from exc
+        if report_step:
+            report_progress(report_step, "Qwen finished generating the questions", len(text), 0)
+        return text
 
     def _pdf_pages(self, pdf_path: str) -> List[str]:
         try:
@@ -342,7 +289,7 @@ class QwenQuestionStudioService:
         focus_topic: Optional[str],
         web_sources: List[WebSource],
     ) -> List[Dict[str, Any]]:
-        # ponytail: serialize local Ollama requests to keep concurrent chapter jobs from competing
+        # ponytail: serialize chapter jobs so they do not compete for the shared model
         with self._inference_lock:
             passages = build_source_passages(self._pdf_pages(pdf_path) if pdf_path else [], web_sources)
             if not passages:

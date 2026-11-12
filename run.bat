@@ -31,19 +31,6 @@ if errorlevel 1 (
 where npm >nul 2>nul || (echo npm could not be found after installing Node.js.& goto :fail)
 nvidia-smi >nul 2>nul || (echo An NVIDIA GPU driver was not found. Install the driver and check nvidia-smi.& goto :fail)
 
-where ollama >nul 2>nul
-if errorlevel 1 (
-    where winget >nul 2>nul || (echo Install Ollama from https://ollama.com/download/windows, then run this file again.& goto :fail)
-    echo Installing Ollama...
-    winget install --id Ollama.Ollama --exact --silent --accept-package-agreements --accept-source-agreements
-    if errorlevel 1 (echo Ollama installation failed.& goto :fail)
-)
-set "OLLAMA="
-for /f "delims=" %%O in ('where ollama 2^>nul') do if not defined OLLAMA set "OLLAMA=%%O"
-if not defined OLLAMA if exist "%LOCALAPPDATA%\Programs\Ollama\ollama.exe" set "OLLAMA=%LOCALAPPDATA%\Programs\Ollama\ollama.exe"
-if not defined OLLAMA if exist "%ProgramFiles%\Ollama\ollama.exe" set "OLLAMA=%ProgramFiles%\Ollama\ollama.exe"
-if not defined OLLAMA (echo Could not find Ollama after installation. Open a new terminal and retry.& goto :fail)
-
 if not exist ".venv\Scripts\python.exe" (
     "%PYTHON_BIN%" %PYTHON_ARGS% -m venv .venv
     if errorlevel 1 (echo Could not create the Python virtual environment.& goto :fail)
@@ -73,24 +60,6 @@ if not exist "node_modules\vite" (
     call npm ci
     if errorlevel 1 (echo Frontend dependency installation failed.& goto :fail)
 )
-
-curl.exe -fsS http://127.0.0.1:11434/api/version >nul 2>nul
-if errorlevel 1 (
-    echo Starting Ollama...
-    start "Ollama" /min "%OLLAMA%" serve
-    for /l %%i in (1,1,30) do (
-        curl.exe -fsS http://127.0.0.1:11434/api/version >nul 2>nul && goto :ollama_ready
-        timeout /t 2 /nobreak >nul
-    )
-    echo Ollama did not start on 127.0.0.1:11434.
-    goto :fail
-)
-:ollama_ready
-echo Downloading required AI models. This can take a while on the first run...
-"%OLLAMA%" pull qwen2.5vl:7b
-if errorlevel 1 (echo Could not download the Question Studio model.& goto :fail)
-"%OLLAMA%" pull qwen2.5:7b
-if errorlevel 1 (echo Could not download the Ask LumenEIOS model.& goto :fail)
 
 start "LumenEIOS Backend and API" cmd /k "cd /d ""%CD%"" && ""%CD%\.venv\Scripts\python.exe"" -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload"
 start "LumenEIOS Frontend" cmd /k "cd /d ""%CD%"" && npm run dev"

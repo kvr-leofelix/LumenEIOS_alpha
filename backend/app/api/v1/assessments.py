@@ -345,7 +345,7 @@ async def generate_questions_beta(
             details=(
                 f"Generated {req.mcq_count} MCQs and {req.theory_count} Theory items "
                 f"(Bloom: {req.bloom_level}) from {', '.join(source_names)} using "
-                f"{settings.QWEN_QUESTION_STUDIO_MODEL_ID}."
+                f"{settings.QWEN_VL_MODEL_ID}."
             ),
             category="assessment",
         )
@@ -357,7 +357,7 @@ async def generate_questions_beta(
         "subject_id": req.subject_id,
         "bloom_level": req.bloom_level,
         "source_documents_used": source_names,
-        "model": settings.QWEN_QUESTION_STUDIO_MODEL_ID,
+        "model": settings.QWEN_VL_MODEL_ID,
         "questions": saved_out,
     }
 

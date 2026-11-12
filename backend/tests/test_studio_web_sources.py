@@ -6,7 +6,8 @@ import pytest
 
 from backend.app.api.v1 import assessments as assessments_api
 from backend.app.services import web_source
-from backend.app.services.llm_service import QwenQuestionStudioService, qwen_question_studio
+from backend.app.services.llm_service import QwenQuestionStudioService
+from backend.app.services.ocr_service import qwen_model
 from backend.app.services.web_source import (
     WebSource,
     WebSourceError,
@@ -139,7 +140,13 @@ async def test_endpoint_generates_from_links_without_a_pdf(client, teacher_token
     async def fake_fetch(url):
         return WebSource(url=url, title="Photosynthesis", text=ARTICLE)
     monkeypatch.setattr(assessments_api, "fetch_web_source", fake_fetch)
-    monkeypatch.setattr(qwen_question_studio, "_generate_text", lambda prompt, **_: ONE_MCQ)
+    def generate(messages, max_new_tokens):
+        prompt = messages[0]["content"][0]["text"]
+        assert "Photosynthesis" in prompt
+        assert "JSON object" in prompt
+        return ONE_MCQ
+
+    monkeypatch.setattr(qwen_model, "generate", generate)
     headers = {"Authorization": f"Bearer {teacher_token}"}
     body = {"subject_id": "sub-sci", "subject_name": "Science", "mcq_count": 1, "theory_count": 0,
             "bloom_level": "Understand", "save_to_bank": False,
@@ -149,6 +156,7 @@ async def test_endpoint_generates_from_links_without_a_pdf(client, teacher_token
 
     assert response.status_code == 200, response.text
     data = response.json()
+    assert data["model"] == assessments_api.settings.QWEN_VL_MODEL_ID
     assert data["source_documents_used"] == ["https://en.wikipedia.org/wiki/Photosynthesis"]
     assert data["questions"][0]["source_document_names"] == ["https://en.wikipedia.org/wiki/Photosynthesis"]
 

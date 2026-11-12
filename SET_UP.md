@@ -1,6 +1,6 @@
 # Vast.ai one-run setup
 
-Paste the Bash block below into a Vast.ai Jupyter terminal. It clones the app, installs the GPU OCR stack and Ollama, downloads the AI models, and starts the web app.
+Paste the Bash block below into a Vast.ai Jupyter terminal. It clones the app, installs the GPU dependencies and downloads the shared Qwen model, and starts the web app.
 
 ```bash
 set -euo pipefail
@@ -27,7 +27,18 @@ git -C "$repo" log -1 --format='Deploying %h (%s) from '"$branch"
 cd "$app"
 
 if [ ! -x "$node_env/bin/node" ]; then
-  conda create -y --prefix "$node_env" --override-channels -c conda-forge nodejs=22
+  (
+    tmp=$(mktemp -d)
+    trap 'rm -rf -- "$tmp"' EXIT
+    cd "$tmp"
+    release=https://nodejs.org/dist/latest-v22.x
+    curl -fsSL "$release/SHASUMS256.txt" | awk '$2 ~ /-linux-x64\.tar\.gz$/ { print }' > node.sha256
+    read -r checksum archive < node.sha256
+    curl -fsSL "$release/$archive" -o "$archive"
+    sha256sum -c node.sha256
+    mkdir -p "$node_env"
+    tar -xzf "$archive" --strip-components=1 -C "$node_env"
+  )
 fi
 export PATH="$node_env/bin:$PATH"
 
@@ -50,19 +61,6 @@ fi
 .venv/bin/python -c 'import torch; assert torch.cuda.is_available(), "CUDA PyTorch is required"; print("GPU ready:", torch.cuda.get_device_name(0))'
 .venv/bin/python -c 'from huggingface_hub import snapshot_download; snapshot_download("Qwen/Qwen2.5-VL-3B-Instruct-AWQ")'
 
-export OLLAMA_HOST=127.0.0.1:11434
-if ! command -v ollama >/dev/null 2>&1; then
-  curl -fsSL https://ollama.com/install.sh | sh
-fi
-if ! curl -fsS --max-time 3 http://127.0.0.1:11434/api/version >/dev/null; then
-  nohup ollama serve > "$app/ollama.log" 2>&1 </dev/null &
-fi
-curl -fsS --retry 10 --retry-connrefused --retry-delay 1 \
-  http://127.0.0.1:11434/api/version
-printf '\n'
-ollama pull qwen2.5vl:7b
-ollama pull qwen2.5:7b
-
 if [ ! -e .env ]; then
   secret=$(.venv/bin/python -c 'import secrets; print(secrets.token_urlsafe(48))')
   (umask 077; cat > .env <<EOF
@@ -71,10 +69,7 @@ DEBUG=false
 DEMO_MODE=false
 DEMO_ROOT_PASSWORD=
 SECRET_KEY=$secret
-OLLAMA_BASE_URL=http://127.0.0.1:11434
 QWEN_VL_MODEL_ID=Qwen/Qwen2.5-VL-3B-Instruct-AWQ
-QWEN_QUESTION_STUDIO_MODEL_ID=qwen2.5vl:7b
-ASSISTANT_MODEL=qwen2.5:7b
 PAYPAL_ENV=${PAYPAL_ENV:-sandbox}
 PAYPAL_CLIENT_ID=${PAYPAL_CLIENT_ID:-}
 PAYPAL_CLIENT_SECRET=${PAYPAL_CLIENT_SECRET:-}
@@ -116,6 +111,7 @@ EOF
 
 supervisorctl reread
 supervisorctl update
+supervisorctl restart lumeneios-api lumeneios-web
 
 jupyter_python=$(sed -n '1s/^#!//p' "$jupyter")
 test -x "$jupyter_python"

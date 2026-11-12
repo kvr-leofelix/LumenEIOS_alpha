@@ -151,7 +151,7 @@ The backend is implemented using **Python FastAPI** and **SQLAlchemy 2.x (Async)
 - Windows 10/11 with `winget`
 - NVIDIA GPU and a current NVIDIA driver (for OCR)
 
-On Windows, run `run.bat` from the project folder. It installs Python 3.12, Node.js, CUDA-enabled PyTorch and OCR dependencies as needed, downloads the OCR model, installs Ollama and pulls the two assistant/question models, then starts the backend and frontend. The first run downloads several gigabytes and can take a while. Local Windows uses the standard non-AWQ Qwen checkpoint; Vast.ai uses the AWQ checkpoint.
+On Windows, run `run.bat` from the project folder. It installs Python 3.12, Node.js, CUDA-enabled PyTorch and OCR dependencies as needed, downloads one Qwen checkpoint for worksheet OCR, Question Studio Beta, and the assistant, then starts the backend and frontend. The first run downloads several gigabytes and can take a while. Local Windows uses the standard non-AWQ Qwen checkpoint; Vast.ai uses the AWQ checkpoint.
 
 ### 8.1 Backend Setup
 ```bash
@@ -209,7 +209,7 @@ The local checkout redirects use `http://localhost:3000`. Set `PAYPAL_RETURN_URL
 The source repository does not include machine-specific credentials, model weights, uploaded student work, or a database. After cloning on a new device:
 
 - **Core app and demo accounts:** install Python and Node.js dependencies with `run.bat` (Windows) or the backend/frontend steps above. Demo features use seeded local records.
-- **Ask LumenEIOS and AI Question Studio:** `run.bat` installs/starts Ollama and downloads the required models. Both features need internet on first setup; without Ollama running and those models present, the AI features are unavailable.
+- **Ask LumenEIOS and AI Question Studio:** `run.bat` downloads the shared Qwen checkpoint. Both features share the worksheet OCR checkpoint and require the CUDA backend.
 - **Qwen OCR preview:** `run.bat` installs a CUDA-compatible PyTorch build and `backend/requirements-ocr.txt` on Windows. A supported NVIDIA GPU and driver are required; CPU-only hosts cannot run this OCR model.
 - **PayPal billing:** provide Sandbox or Live app credentials and matching plan IDs in `.env`. Run the plan setup script once for a new PayPal account. A public HTTPS webhook is needed for automatic subscription status updates. Without these settings, checkout is unavailable.
 - **Voice input:** requires a supported browser and microphone permission. Typed chat still works without speech recognition. Browser speech recognition availability and audio handling depend on the browser.
